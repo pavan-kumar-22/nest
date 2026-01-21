@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -8,7 +8,12 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto, @Body('dbName') dbName: string) {
+  create(@Body() createProductDto: CreateProductDto, @Req() req: any) {
+    // dbName comes from tenant middleware, which uses slug from URL
+    const dbName = req.tenant?.dbName;
+    if (!dbName) {
+      throw new Error('Tenant database not found for this slug');
+    }
     return this.productService.create(createProductDto, dbName);
   }
 
